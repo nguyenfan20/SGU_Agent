@@ -1,0 +1,8 @@
+#Các key
+.env
+
+#Các file chạy
+.__pycache__/
+
+#Môi truờng ảo
+.venv/
