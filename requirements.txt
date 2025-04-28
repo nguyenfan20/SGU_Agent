@@ -1,0 +1,10 @@
+Flask>=2.3.2
+pandas>=2.0.3
+numpy>=1.24.3
+faiss-cpu>=1.7.4
+sentence-transformers>=2.2.2
+torch>=2.0.1
+transformers>=4.31.0
+sentencepiece>=0.1.99
+# No new explicit requirement for sqlite3, as it's built-in
+# If using SQLAlchemy etc, add here

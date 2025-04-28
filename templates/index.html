@@ -1,0 +1,1128 @@
+<!-- templates/index.html (Updated with Right Sidebar) -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGU Study Agent - Gợi ý Tài liệu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* General Layout */
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0; /* Remove body padding */
+            background-color: #f4f4f4;
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scroll when sidebar is off-screen */
+        }
+        .flex-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Left Sidebar */
+        .left-sidebar {
+            width: 16rem; /* 64 TailWind */
+            flex-shrink: 0;
+            background-color: #1a202c; /* gray-900 */
+            color: white;
+            padding: 1rem; /* p-4 */
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease-in-out; /* Add transition */
+            transform: translateX(0); /* Default state */
+        }
+        /* Hide left sidebar on mobile */
+        @media (max-width: 767px) {
+             .left-sidebar {
+                  transform: translateX(-100%);
+                  position: fixed; /* Fix position for overlay */
+                  z-index: 40; /* Below mobile overlay */
+             }
+             .left-sidebar.open {
+                  transform: translateX(0);
+             }
+        }
+
+
+        /* Main Content Area */
+        .main-content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative; /* Needed for absolute positioning of toggle button */
+             transition: margin-right 0.3s ease-in-out; /* Transition for shifting when right sidebar is open */
+        }
+         .main-content-area.shifted {
+             margin-right: 16rem; /* Match right sidebar width */
+         }
+         @media (max-width: 767px) {
+             .main-content-area.shifted {
+                 margin-right: 0; /* Don't shift main content on mobile */
+             }
+         }
+
+
+        /* Right Sidebar (New) */
+        .right-sidebar {
+             width: 16rem; /* Same width as left sidebar */
+             flex-shrink: 0;
+             background-color: #f7fafc; /* gray-100 */
+             color: #333;
+             padding: 1rem; /* p-4 */
+             border-left: 1px solid #e2e8f0; /* gray-200 */
+             display: flex;
+             flex-direction: column;
+             position: fixed; /* Fixed position */
+             top: 0;
+             right: 0;
+             bottom: 0;
+             transform: translateX(100%); /* Start off-screen */
+             transition: transform 0.3s ease-in-out; /* Add transition */
+             z-index: 50; /* Above main content, below mobile overlay */
+             box-shadow: -2px 0 5px rgba(0,0,0,0.1); /* Optional shadow */
+        }
+        .right-sidebar.open {
+             transform: translateX(0); /* Slide in */
+        }
+         @media (max-width: 767px) {
+             .right-sidebar {
+                 width: 75%; /* Adjust width for mobile */
+             }
+         }
+
+
+        /* Chat Layout */
+        .chat-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Fill main content height */
+        }
+         .chat-layout .input-container {
+             flex-shrink: 0;
+             background-color: white; /* Ensure input background is white */
+             border-top: 1px solid #e2e8f0;
+         }
+         .chat-layout .messages-container {
+             flex-grow: 1;
+             overflow-y: auto;
+             display: flex;
+             flex-direction: column;
+             padding: 1rem; /* p-4 */
+             padding-bottom: 100px; /* Padding for last message */
+         }
+         .chat-layout .welcome-message-container {
+             margin-bottom: 1.5rem; /* space-y-6 */
+         }
+         .chat-layout #message-container {
+             flex-grow: 1;
+             display: flex; /* Needed for column layout inside messages */
+             flex-direction: column; /* Keep messages top-to-bottom */
+             width: 100%; /* Ensure inner container fills parent */
+         }
+         .chat-layout #message-container > div {
+              margin-bottom: 1.5rem; /* space-y-6 between messages */
+         }
+
+
+
+        /* Message Styles */
+        .max-w-3xl {
+            max-width: 48rem; /* Consistent max width */
+            margin-left: auto;
+            margin-right: auto;
+             width: 100%; /* Ensure it takes full width up to max-width */
+        }
+
+        .recommendation-item {
+            background-color: #e9e9e9;
+            padding: 0.75rem; /* p-3 */
+            margin-bottom: 0.75rem; /* space-y-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            border-left: 4px solid #0056b3;
+            color: #333;
+        }
+        .recommendation-item .title {
+            font-weight: bold;
+            color: #0056b3;
+            margin-bottom: 0.3rem; /* space-y-1 */
+        }
+         .recommendation-item p { /* Style for paragraphs inside rec item */
+              color: #333;
+              font-size: 0.95em;
+              margin: 0; /* Remove default paragraph margin */
+         }
+
+
+         .combined-explanation {
+             background-color: #e0f7fa;
+             border-left: 4px solid #007bff;
+             padding: 1rem; /* p-4 */
+             margin-bottom: 1.5rem; /* space-y-6 */
+             border-radius: 0.5rem; /* rounded-lg */
+             font-style: italic;
+             color: #333;
+         }
+          .document-list-title {
+              font-weight: bold;
+              margin-top: 1rem;
+              margin-bottom: 0.5rem;
+              color: #333;
+          }
+          .document-list {
+              list-style: disc;
+              padding-left: 20px;
+              margin-bottom: 1rem;
+          }
+          .document-list li {
+              margin-bottom: 0.3rem;
+              color: #555;
+          }
+          .document-list li strong {
+               color: #333;
+          }
+
+        /* Sidebar History Links (Left Sidebar) */
+        .sidebar-history-link {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            padding: 0.5rem; /* p-2 */
+            border-radius: 0.25rem; /* rounded */
+            color: #ccc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .sidebar-history-link i {
+            flex-shrink: 0;
+            margin-right: 0.5rem; /* mr-2 */
+             color: #aaa;
+        }
+         .sidebar-history-link span {
+             flex-grow: 1;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             white-space: nowrap;
+         }
+        .sidebar-history-link:hover {
+             background-color: #777;
+             color: white;
+        }
+         .sidebar-history-link:hover i {
+             color: white;
+         }
+
+         .history-loading-message, .history-error-message, .no-history-message {
+             color: #9ca3af; /* gray-400 */
+             font-size: 0.875rem; /* text-sm */
+             padding-left: 0.5rem; /* px-2 */
+         }
+         .history-error-message {
+              color: #f87171;
+         }
+
+
+        /* Right Sidebar Styles */
+        .right-sidebar .search-input {
+             width: 100%;
+             padding: 0.5rem;
+             border: 1px solid #ccc;
+             border-radius: 0.25rem;
+             margin-bottom: 1rem;
+        }
+         .right-sidebar .document-list-sidebar {
+             list-style: none;
+             padding: 0;
+             margin: 0;
+             overflow-y: auto; /* Scrollable list */
+             flex-grow: 1; /* Take remaining space */
+         }
+         .right-sidebar .document-list-sidebar li {
+             padding: 0.5rem 0;
+             border-bottom: 1px solid #eee;
+             font-size: 0.9em;
+             color: #555;
+             cursor: pointer; /* Indicate clickable */
+         }
+         .right-sidebar .document-list-sidebar li strong {
+             color: #333;
+         }
+         .right-sidebar .document-list-sidebar li:last-child {
+             border-bottom: none;
+         }
+         .right-sidebar .document-list-sidebar li:hover {
+             background-color: #e2e8f0;
+         }
+          .right-sidebar .document-list-sidebar .doc-id {
+              font-size: 0.8em;
+              color: #777;
+              margin-right: 5px;
+          }
+
+
+        /* Toggle Button for Right Sidebar */
+        #right-sidebar-toggle {
+             position: absolute; /* Position relative to main-content-area */
+             top: 1rem; /* Adjust position as needed */
+             right: 1rem; /* Adjust position as needed */
+             z-index: 20; /* Above chat content */
+             background-color: #007bff; /* Blue background */
+             color: white;
+             padding: 0.5rem;
+             border-radius: 0.25rem;
+             cursor: pointer;
+             display: flex; /* Center icon */
+             align-items: center;
+             justify-content: center;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+             transition: right 0.3s ease-in-out; /* Shift button when sidebar opens */
+        }
+         #right-sidebar-toggle.shifted {
+             right: 17rem; /* Shift right by sidebar width + its right padding */
+         }
+         @media (max-width: 767px) {
+             #right-sidebar-toggle.shifted {
+                 right: 1rem; /* Don't shift button on mobile */
+             }
+         }
+
+
+        /* Mobile Overlay for Left Sidebar */
+        #mobile-sidebar-overlay {
+             position: fixed;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             background-color: rgba(0, 0, 0, 0.5);
+             z-index: 30; /* Between sidebars and main content */
+             display: none; /* Hidden by default */
+        }
+         #mobile-sidebar-overlay.visible {
+             display: block;
+         }
+         #mobile-sidebar-overlay .left-sidebar {
+              transform: translateX(-100%); /* Hide mobile sidebar initially */
+         }
+         #mobile-sidebar-overlay.visible .left-sidebar {
+              transform: translateX(0); /* Show mobile sidebar when overlay visible */
+         }
+
+    </style>
+</head>
+<body>
+    <div class="flex-container">
+
+        <!-- Left Sidebar (Desktop) -->
+        <div class="left-sidebar hidden md:flex flex-col">
+            <div class="flex items-center mb-8">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="h-10 w-10 mr-2">
+                <h1 class="text-xl font-bold">SGU Agent</h1>
+            </div>
+
+            {% if current_user_id %}
+                 <div class="text-gray-400 text-sm mb-4 px-2">Đăng nhập với: <strong>{{ current_user_id }}</strong></div>
+            {% endif %}
+
+            <button id="new-chat-btn" class="w-full flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-md p-3 mb-4 transition">
+                <span class="flex items-center">
+                    <i class="far fa-plus-square mr-2"></i>
+                    Chat mới
+                </span>
+                <i class="fas fa-pen"></i>
+            </button>
+
+            {# History Section in Sidebar #}
+            <div class="mb-4 flex-1 overflow-y-auto">
+                <div class="flex items-center justify-between text-gray-400 mb-2 px-2 cursor-pointer" id="history-toggle">
+                    <span>Lịch sử gần đây</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="space-y-1" id="history-links-container">
+                     <div class="history-loading-message">Đang tải lịch sử...</div>
+                </div>
+            </div>
+
+
+            <div class="flex-shrink-0">
+                 <a href="{{ url_for('logout') }}" class="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-md p-3 mt-4 transition text-white text-center">
+                     <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                 </a>
+                <button class="w-full flex items-center p-2 rounded hover:bg-gray-700">
+                    <i class="fas fa-cog mr-2"></i>
+                    <span>Cài đặt</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-gray-900 text-white p-4 flex items-center justify-between flex-shrink-0">
+            <button id="mobile-menu-btn" class="p-2">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="text-xl font-bold">SGU Agent</h1>
+            <button id="new-chat-mobile-btn" class="p-2">
+                <i class="far fa-plus-square"></i>
+            </button>
+        </header>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+            <div class="left-sidebar w-64"> {# Re-use left-sidebar class #}
+                 <div class="flex items-center justify-between mb-8 flex-shrink-0">
+                     <div class="flex items-center">
+                         <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="h-10 w-10 mr-2">
+                         <h1 class="text-xl font-bold">SGU Agent</h1>
+                     </div>
+                     <button id="close-mobile-menu" class="p-2">
+                         <i class="fas fa-times text-white"></i> {# Ensure icon is white #}
+                     </button>
+                 </div>
+
+                  {% if current_user_id %}
+                      <div class="text-gray-400 text-sm mb-4 px-2 flex-shrink-0">Đăng nhập với: <strong>{{ current_user_id }}</strong></div>
+                 {% endif %}
+
+                 <button class="w-full flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-md p-3 mb-4 transition flex-shrink-0" id="new-chat-mobile-btn-actual">
+                     <span class="flex items-center">
+                         <i class="far fa-plus-square mr-2"></i>
+                         Chat mới
+                     </span>
+                     <i class="fas fa-pen"></i>
+                 </button>
+
+                  {# Mobile History Section #}
+                  <div class="mb-4 flex-1 overflow-y-auto">
+                      <div class="flex items-center justify-between text-gray-400 mb-2 px-2 cursor-pointer" id="mobile-history-toggle">
+                          <span>Lịch sử gần đây</span>
+                          <i class="fas fa-chevron-down"></i>
+                      </div>
+                      <div class="space-y-1" id="mobile-history-links-container">
+                           <div class="history-loading-message">Đang tải lịch sử...</div>
+                      </div>
+                  </div>
+
+
+                 <div class="flex-shrink-0">
+                      <a href="{{ url_for('logout') }}" class="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-md p-3 mt-4 mb-2 transition text-white text-center">
+                          <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                      </a>
+                     <button class="w-full flex items-center p-2 rounded hover:bg-gray-700">
+                         <i class="fas fa-cog mr-2"></i>
+                         <span>Cài đặt</span>
+                     </button>
+                 </div>
+             </div>
+        </div>
+
+
+        <!-- Main Content Area -->
+        <main class="main-content-area flex flex-col chat-layout">
+
+            <!-- Right Sidebar Toggle Button -->
+            <button id="right-sidebar-toggle" class="p-2">
+                <i class="fas fa-bars"></i> {# Use a different icon if preferred, e.g., fas fa-book #}
+            </button>
+
+
+            <!-- Messages container -->
+            <div id="chat-container" class="messages-container p-4 space-y-6 overflow-y-auto flex-grow">
+
+                 {# --- Welcome message (Always show initially in chat area) --- #}
+                 <div class="max-w-3xl mx-auto w-full welcome-message-container">
+                     <div class="flex items-start space-x-4">
+                         <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-900 flex items-center justify-center text-white">
+                            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SGU Logo" class="h-8 w-8">
+                         </div>
+                         <div class="bg-white p-4 rounded-lg shadow-sm">
+                             <h2 class="font-bold text-lg mb-2">Xin chào! Tôi có thể giúp gì cho bạn hôm nay?</h2>
+                             <p class="text-gray-600">Tôi là hệ thống gợi ý tài liệu học tập thông minh cho sinh viên Đại học Sài Gòn. Hãy hỏi tôi về các môn học, chủ đề học tập, hoặc các khái niệm cơ bản.</p>
+                             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                 <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 p-3 rounded-lg text-left transition">
+                                     "Đại số tuyến tính là gì?"
+                                 </button>
+                                 <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 p-3 rounded-lg text-left transition">
+                                     "Tài liệu môn Lập trình Web"
+                                 </button>
+                                 <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 p-3 rounded-lg text-left transition">
+                                     "Giải thích về hồi quy tuyến tính"
+                                 </button>
+                                 <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 p-3 rounded-lg text-left transition">
+                                     "Các dạng bài tập Cơ sở dữ liệu"
+                                 </button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+
+
+                <!-- Conversation will be dynamically added here -->
+                <div id="message-container" class="w-full flex flex-col">
+                     {# Messages added here by JS #}
+                </div>
+            </div>
+
+            <!-- Input area at the bottom -->
+            <div class="input-container p-4 border-t border-gray-200 bg-white flex-shrink-0">
+                <p class="text-xs text-gray-500 mt-2 text-center">
+                    Hệ thống sử dụng AI để gợi ý tài liệu học tập.
+                </p>
+                <form id="chat-form" class="max-w-3xl mx-auto relative">
+                    <div class="relative">
+                        <textarea
+                            id="message-input"
+                            rows="1"
+                            placeholder="Nhập truy vấn hoặc câu hỏi của bạn..."
+                            class="w-full p-4 pr-16 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none transition-height"
+                            style="min-height: 60px; max-height: 200px;"
+                        ></textarea>
+                        <button
+                            type="submit"
+                            id="send-btn"
+                            class="absolute right-3 bottom-3 p-2 rounded-full bg-gray-900 text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                            disabled
+                        >
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <!-- Right Sidebar (Document List) -->
+        <div id="right-sidebar" class="right-sidebar">
+             <h2 class="text-lg font-bold mb-4 text-center">Danh sách Tài liệu</h2>
+             <input type="text" id="document-search-input" placeholder="Tìm kiếm ID hoặc Tiêu đề..." class="search-input">
+             <ul id="document-list-sidebar" class="document-list-sidebar">
+                  {# Document list will be loaded here by JS #}
+                  <li class="text-gray-500 text-sm px-2">Đang tải tài liệu...</li>
+             </ul>
+        </div>
+
+    </div> {# End flex-container #}
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        {# The mobile sidebar itself is inside here now #}
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DOM Elements ---
+            // Left Sidebar elements
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
+            const mobileSidebar = document.querySelector('#mobile-sidebar-overlay .left-sidebar'); // Get the actual sidebar inside overlay
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+
+            // Main content elements
+            const mainContentArea = document.querySelector('.main-content-area');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const chatForm = document.getElementById('chat-form');
+            const chatContainer = document.getElementById('chat-container');
+            const messageContainer = document.getElementById('message-container');
+
+            // Right Sidebar elements
+            const rightSidebarToggle = document.getElementById('right-sidebar-toggle');
+            const rightSidebar = document.getElementById('right-sidebar');
+            const documentSearchInput = document.getElementById('document-search-input');
+            const documentListSidebar = document.getElementById('document-list-sidebar');
+
+
+            // Other elements
+            const newChatBtn = document.getElementById('new-chat-btn'); // Desktop new chat
+            const newChatMobileBtn = document.getElementById('new-chat-mobile-btn-actual'); // Mobile new chat
+            const historyToggle = document.getElementById('history-toggle'); // Desktop history toggle
+            const historyLinksContainer = document.getElementById('history-links-container'); // Desktop history container
+            const mobileHistoryToggle = document.getElementById('mobile-history-toggle'); // Mobile history toggle
+            const mobileHistoryLinksContainer = document.getElementById('mobile-history-links-container'); // Mobile history container
+
+
+            let isGenerating = false;
+             let allDocuments = []; // Store the full list of documents
+
+            // --- Event Listeners ---
+
+            // Mobile Left Sidebar Toggle
+            if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', () => {
+                 mobileSidebarOverlay.classList.add('visible'); // Show overlay
+                 mobileSidebar.classList.add('open'); // Slide in sidebar
+                 // Close right sidebar if open
+                 if (rightSidebar.classList.contains('open')) {
+                     toggleRightSidebar(false);
+                 }
+            });
+            if (closeMobileMenu) closeMobileMenu.addEventListener('click', () => {
+                 mobileSidebar.classList.remove('open'); // Slide out sidebar
+                 // Wait for transition to finish before hiding overlay
+                 mobileSidebar.addEventListener('transitionend', function handler() {
+                      mobileSidebarOverlay.classList.remove('visible');
+                      mobileSidebar.removeEventListener('transitionend', handler);
+                 });
+            });
+            // Close mobile sidebar when clicking overlay
+            if (mobileSidebarOverlay) mobileSidebarOverlay.addEventListener('click', (e) => {
+                 // Check if click is directly on the overlay, not on the sidebar itself
+                 if (e.target === mobileSidebarOverlay) {
+                     mobileSidebar.classList.remove('open');
+                      mobileSidebar.addEventListener('transitionend', function handler() {
+                           mobileSidebarOverlay.classList.remove('visible');
+                           mobileSidebar.removeEventListener('transitionend', handler);
+                      });
+                 }
+            });
+
+
+            // Right Sidebar Toggle
+            if (rightSidebarToggle && rightSidebar && mainContentArea) {
+                 rightSidebarToggle.addEventListener('click', () => {
+                     const is_open = rightSidebar.classList.contains('open');
+                     toggleRightSidebar(!is_open);
+                      // Close left sidebar if open
+                      if (mobileSidebarOverlay.classList.contains('visible')) {
+                           mobileSidebar.classList.remove('open');
+                           mobileSidebar.addEventListener('transitionend', function handler() {
+                                mobileSidebarOverlay.classList.remove('visible');
+                                mobileSidebar.removeEventListener('transitionend', handler);
+                           });
+                      }
+                 });
+            }
+
+             // Helper function to open/close right sidebar
+             function toggleRightSidebar(open) {
+                  if (open) {
+                      rightSidebar.classList.add('open');
+                      mainContentArea.classList.add('shifted'); // Shift main content on desktop
+                      rightSidebarToggle.classList.add('shifted'); // Shift toggle button
+                      // Load documents if not already loaded
+                      if (allDocuments.length === 0) {
+                           loadDocumentList();
+                      }
+                  } else {
+                      rightSidebar.classList.remove('open');
+                      mainContentArea.classList.remove('shifted');
+                       rightSidebarToggle.classList.remove('shifted');
+                  }
+             }
+
+
+            // New chat buttons
+            if (newChatBtn) newChatBtn.addEventListener('click', startNewChat);
+            if (newChatMobileBtn) newChatMobileBtn.addEventListener('click', () => {
+                startNewChat();
+                 // Close mobile sidebar after starting new chat
+                 if (mobileSidebarOverlay.classList.contains('visible')) {
+                      mobileSidebar.classList.remove('open');
+                      mobileSidebar.addEventListener('transitionend', function handler() {
+                           mobileSidebarOverlay.classList.remove('visible');
+                           mobileSidebar.removeEventListener('transitionend', handler);
+                      });
+                 }
+            });
+
+
+            // Suggestion buttons (Delegation)
+            document.addEventListener('click', function(e) {
+                 if (e.target && e.target.classList.contains('suggestion-btn')) {
+                      if (messageInput) {
+                         messageInput.value = e.target.textContent.trim().replace(/^\"|\"$/g, '');
+                         const inputEvent = new Event('input', { bubbles: true });
+                         messageInput.dispatchEvent(inputEvent);
+                         messageInput.focus();
+                      }
+                 }
+            });
+
+            // Message input handling (Auto-resize & Button enable/disable)
+            if (messageInput) {
+                messageInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                    if (sendBtn) {
+                       sendBtn.disabled = this.value.trim() === '';
+                    }
+                });
+                 messageInput.addEventListener('keypress', function(e) {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                           e.preventDefault();
+                            if (sendBtn && !sendBtn.disabled) {
+                                sendBtn.click();
+                            }
+                      }
+                 });
+            }
+
+            // Form submission - AJAX/FETCH
+            if (chatForm) {
+                chatForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    if (isGenerating) return;
+
+                    const message = messageInput.value.trim();
+                    if (message === '') return;
+
+                    addMessage(message, 'user');
+                    messageInput.value = '';
+                    if (messageInput) messageInput.style.height = '60px';
+                    if (sendBtn) sendBtn.disabled = true;
+
+                    const typingIndicator = addMessage('...', 'ai', true);
+                    scrollToBottom();
+
+
+                    // --- Send query to Flask backend via Fetch API ---
+                    try {
+                        const response = await fetch("{{ url_for('recommend') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ query: message })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                             // If status is 401 (Unauthorized), redirect to login
+                             if (response.status === 401) {
+                                  window.location.href = "{{ url_for('login') }}";
+                                  return; // Stop execution
+                             }
+                            throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+
+                        // Remove typing indicator
+                        if (typingIndicator && typingIndicator.parentNode) typingIndicator.remove();
+
+                        // --- Handle Response ---
+                        if (result.error) {
+                            addMessage(`Đã xảy ra lỗi: ${escapeHTML(result.error)}`, 'ai');
+                        } else if (result.recommendations && result.recommendations.length > 0) {
+                             let aiResponseContent = '';
+
+                             // Display the combined explanation first
+                             if (result.recommendations[0].explanation) {
+                                  aiResponseContent += `<div class="combined-explanation">${escapeHTML(result.recommendations[0].explanation)}</div>`;
+                             } else {
+                                  aiResponseContent += `<div class="combined-explanation">Hệ thống tìm thấy các tài liệu liên quan.</div>`;
+                             }
+
+                             // Display the list of recommended documents
+                              if (result.recommendations.length > 0) {
+                                  aiResponseContent += `<div class="document-list-title">Các tài liệu liên quan được tìm thấy:</div>`;
+                                  aiResponseContent += `<ul class="document-list">`;
+                                   result.recommendations.forEach(rec => {
+                                       aiResponseContent += `<li><strong>${escapeHTML(rec.title)}</strong> (ID: ${escapeHTML(rec.doc_id)}) <small>[Nguồn gốc ứng viên: ${escapeHTML(rec.source)}]</small></li>`;
+                                   });
+                                  aiResponseContent += `</ul>`;
+                              }
+
+                            addMessage(aiResponseContent, 'ai', false, true);
+
+                        } else {
+                             addMessage('Không tìm thấy phản hồi hoặc gợi ý nào phù hợp.', 'ai');
+                        }
+
+                        // --- Update history in sidebar after successful query ---
+                        if (result.logged_query) {
+                            addHistoryLinkToSidebar(result.logged_query);
+                            updateHistorySidebar();
+                        }
+
+
+                    } catch (error) {
+                        console.error('Error fetching response:', error);
+                        if (typingIndicator && typingIndicator.parentNode) typingIndicator.remove();
+                        addMessage(`Có lỗi xảy ra khi kết nối đến hệ thống. Vui lòng thử lại. Chi tiết: ${escapeHTML(error.message)}`, 'ai');
+                    } finally {
+                         isGenerating = false;
+                         if (sendBtn) sendBtn.disabled = messageInput.value.trim() === '';
+                         scrollToBottom(); // Scroll to bottom AFTER response is added
+                    }
+                });
+            }
+
+            // Left Sidebar History Toggle (Desktop)
+            if (historyToggle && historyLinksContainer) {
+                 historyToggle.addEventListener('click', function() {
+                      historyLinksContainer.classList.toggle('hidden');
+                       const icon = historyToggle.querySelector('i');
+                       if (icon) {
+                           icon.classList.toggle('fa-chevron-down');
+                           icon.classList.toggle('fa-chevron-up');
+                       }
+                 });
+                 historyLinksContainer.classList.add('hidden');
+                 const icon = historyToggle.querySelector('i');
+                 if (icon) {
+                     icon.classList.remove('fa-chevron-up');
+                     icon.classList.add('fa-chevron-down');
+                 }
+            }
+            // Left Sidebar History Toggle (Mobile)
+             if (mobileHistoryToggle && mobileHistoryLinksContainer) {
+                 mobileHistoryToggle.addEventListener('click', function() {
+                      mobileHistoryLinksContainer.classList.toggle('hidden');
+                       const icon = mobileHistoryToggle.querySelector('i');
+                       if (icon) {
+                           icon.classList.toggle('fa-chevron-down');
+                           icon.classList.toggle('fa-chevron-up');
+                       }
+                 });
+                 mobileHistoryLinksContainer.classList.add('hidden');
+                 const icon = mobileHistoryToggle.querySelector('i');
+                 if (icon) {
+                     icon.classList.remove('fa-chevron-up');
+                     icon.classList.add('fa-chevron-down');
+                 }
+            }
+
+
+            // --- Right Sidebar Document List ---
+            if (documentSearchInput && documentListSidebar) {
+                documentSearchInput.addEventListener('input', function() {
+                    filterDocumentList(this.value.trim());
+                });
+            }
+
+            // Load documents from API
+            async function loadDocumentList() {
+                 if (!documentListSidebar) return;
+
+                 documentListSidebar.innerHTML = '<li class="history-loading-message">Đang tải tài liệu...</li>';
+                 allDocuments = []; // Clear previous list
+
+                 try {
+                     const response = await fetch("{{ url_for('api_get_documents') }}");
+                     if (!response.ok) {
+                          const errorData = await response.json();
+                           if (response.status === 401) {
+                               window.location.href = "{{ url_for('login') }}"; return;
+                           }
+                          throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                     }
+                     const result = await response.json(); // { documents: [...], error: "..." }
+
+                     if (result.error) {
+                         documentListSidebar.innerHTML = `<li class="history-error-message">Lỗi tải tài liệu: ${escapeHTML(result.error)}</li>`;
+                     } else if (result.documents && result.documents.length > 0) {
+                         allDocuments = result.documents; // Store the full list
+                         displayDocumentList(allDocuments); // Display initially
+                     } else {
+                         documentListSidebar.innerHTML = '<li class="no-history-message">Không có tài liệu nào.</li>';
+                     }
+
+                 } catch (error) {
+                     console.error('Error fetching document list:', error);
+                     documentListSidebar.innerHTML = `<li class="history-error-message">Lỗi tải tài liệu: ${escapeHTML(error.message)}</li>`;
+                 }
+            }
+
+             // Display documents (filtered or all)
+             function displayDocumentList(documentsToDisplay) {
+                  if (!documentListSidebar) return;
+
+                  if (documentsToDisplay.length === 0) {
+                      documentListSidebar.innerHTML = '<li class="no-history-message">Không tìm thấy tài liệu nào phù hợp với tìm kiếm.</li>';
+                      return;
+                  }
+
+                  let listHTML = '';
+                  documentsToDisplay.forEach(doc => {
+                      listHTML += `
+                          <li data-doc-id="${escapeHTML(doc.doc_id)}" title="${escapeHTML(doc.title)}">
+                              <span class="doc-id">${escapeHTML(doc.doc_id)}</span><strong>${escapeHTML(doc.title)}</strong>
+                          </li>
+                      `;
+                  });
+                  documentListSidebar.innerHTML = listHTML;
+             }
+
+             // Filter documents based on search input
+             function filterDocumentList(searchTerm) {
+                  if (allDocuments.length === 0) return; // Can't filter if no docs loaded
+
+                  const lowerSearchTerm = searchTerm.toLowerCase();
+                  const filteredDocs = allDocuments.filter(doc => {
+                      // Filter if ID or Title contains the search term
+                      return doc.doc_id.toLowerCase().includes(lowerSearchTerm) ||
+                             doc.title.toLowerCase().includes(lowerSearchTerm);
+                  });
+                  displayDocumentList(filteredDocs); // Display filtered results
+             }
+
+            // Handle click on document list items (Optional: put ID/Title in input?)
+             if (documentListSidebar) {
+                 documentListSidebar.addEventListener('click', function(e) {
+                      const docItem = e.target.closest('li[data-doc-id]');
+                      if (docItem) {
+                           const docId = docItem.dataset.docId;
+                           const docTitle = docItem.title; // Get title from title attribute
+                           console.log(`Clicked document: ${docId} - ${docTitle}`);
+                           // Example: Put doc ID or title in the input field
+                           if (messageInput) {
+                                messageInput.value = `Tìm kiếm tài liệu ${docTitle} (ID: ${docId})`; // Or just docId
+                                // Manually trigger input event
+                                const inputEvent = new Event('input', { bubbles: true });
+                                messageInput.dispatchEvent(inputEvent);
+                                messageInput.focus();
+                           }
+                           // Optional: Close the right sidebar after clicking
+                           // toggleRightSidebar(false);
+                      }
+                 });
+             }
+
+
+            // --- Helper Functions ---
+
+            function addMessage(content, sender, is_typing = false, is_html = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'max-w-3xl mx-auto w-full';
+
+                let contentHTML = is_html ? content : `<p>${escapeHTML(content)}</p>`;
+
+                if (sender === 'user') {
+                    messageDiv.innerHTML = `
+                        <div class="flex items-start space-x-4 justify-end">
+                            <div class="bg-green-100 p-4 rounded-lg shadow-sm">
+                                ${contentHTML}
+                            </div>
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-white">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                        </div>
+                    `;
+                } else { // sender === 'ai'
+                    messageDiv.innerHTML = `
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="h-8 w-8">
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm">
+                                ${is_typing ? '<div class="typing-indicator">Đang xử lý...</div>' : contentHTML}
+                                {# Add copy button back if you want to copy AI text #}
+                                 <div class="flex space-x-4 mt-2 text-gray-500 text-sm">
+                                     <button class="copy-btn hover:text-green-600 cursor-pointer"><i class="far fa-copy"></i></button>
+                                 </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                 if (messageContainer) {
+                    messageContainer.appendChild(messageDiv);
+                 }
+
+                 return messageDiv;
+            }
+
+            function escapeHTML(str) {
+                 const div = document.createElement('div');
+                 div.appendChild(document.createTextNode(str));
+                 return div.innerHTML;
+            }
+
+            function scrollToBottom() {
+                 if (chatContainer) {
+                      setTimeout(() => {
+                         chatContainer.scrollTop = chatContainer.scrollHeight;
+                      }, 50);
+                 }
+            }
+
+            async function updateHistorySidebar() {
+                 const desktopContainer = historyLinksContainer;
+                 const mobileContainer = mobileHistoryLinksContainer;
+
+                 if (!desktopContainer && !mobileContainer) return;
+
+                 const loadingHTML = '<div class="history-loading-message">Đang tải lịch sử...</div>';
+                 if (desktopContainer) desktopContainer.innerHTML = loadingHTML;
+                 if (mobileContainer) mobileContainer.innerHTML = loadingHTML;
+
+
+                 try {
+                     const response = await fetch("{{ url_for('api_get_history') }}");
+                     if (!response.ok) {
+                          const errorData = await response.json();
+                           if (response.status === 401) {
+                               window.location.href = "{{ url_for('login') }}"; return;
+                           }
+                          throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                     }
+                     const result = await response.json();
+
+                     if (result.error) {
+                         const errorHTML = `<div class="history-error-message">Lỗi tải lịch sử: ${escapeHTML(result.error)}</div>`;
+                         if (desktopContainer) desktopContainer.innerHTML = errorHTML;
+                         if (mobileContainer) mobileContainer.innerHTML = errorHTML;
+                     } else if (result.history && result.history.length > 0) {
+                         let historyHTML = '';
+                         result.history.forEach(entry => {
+                             const date = new Date(entry.timestamp);
+                             const formattedTime = date.toLocaleString('vi-VN', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+                             historyHTML += `
+                                 <button class="sidebar-history-link" data-query="${escapeHTML(entry.query)}" title="${escapeHTML(entry.query)} - ${formattedTime}">
+                                     <i class="far fa-comment mr-2 text-gray-400"></i>
+                                     <span>${escapeHTML(entry.query)}</span>
+                                 </button>
+                             `;
+                         });
+                         if (desktopContainer) desktopContainer.innerHTML = historyHTML;
+                         if (mobileContainer) mobileContainer.innerHTML = historyHTML;
+
+                     } else {
+                         const noHistoryHTML = '<div class="no-history-message">Không có lịch sử.</div>';
+                         if (desktopContainer) desktopContainer.innerHTML = noHistoryHTML;
+                         if (mobileContainer) mobileContainer.innerHTML = noHistoryHTML;
+                     }
+
+                 } catch (error) {
+                     console.error('Error fetching history:', error);
+                     const errorHTML = `<div class="history-error-message">Lỗi tải lịch sử: ${escapeHTML(error.message)}</div>`;
+                     if (desktopContainer) desktopContainer.innerHTML = errorHTML;
+                     if (mobileContainer) mobileContainer.innerHTML = errorHTML;
+                 }
+            }
+
+             function addHistoryLinkToSidebar(entry) {
+                  const desktopContainer = historyLinksContainer;
+                  const mobileContainer = mobileHistoryLinksContainer;
+
+                   const date = new Date(entry.timestamp);
+                   const formattedTime = date.toLocaleString('vi-VN', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+                   const newLinkHTML = `
+                       <button class="sidebar-history-link" data-query="${escapeHTML(entry.query)}" title="${escapeHTML(entry.query)} - ${formattedTime}">
+                           <i class="far fa-comment mr-2 text-gray-400"></i>
+                           <span>${escapeHTML(entry.query)}</span>
+                       </button>
+                   `;
+
+                   if (desktopContainer) {
+                       const noHistoryMsg = desktopContainer.querySelector('.no-history-message');
+                       if(noHistoryMsg) noHistoryMsg.remove();
+                       desktopContainer.insertAdjacentHTML('afterbegin', newLinkHTML);
+                   }
+                   if (mobileContainer) {
+                       mobileContainer.insertAdjacentHTML('afterbegin', newLinkHTML);
+                   }
+             }
+
+
+            function startNewChat() {
+                if (messageContainer) messageContainer.innerHTML = '';
+                if (messageInput) messageInput.value = '';
+                if (messageInput) messageInput.style.height = '60px';
+                if (sendBtn) sendBtn.disabled = true;
+
+                const originalWelcomeMessageContainer = document.querySelector('.welcome-message-container');
+                 if (originalWelcomeMessageContainer && messageContainer) {
+                     messageContainer.innerHTML = originalWelcomeMessageContainer.outerHTML;
+                 } else {
+                      console.error("Original welcome message container not found!");
+                      if (messageContainer) messageContainer.innerHTML = `
+                            <div class="max-w-3xl mx-auto w-full">
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-900 flex items-center justify-center text-white">
+                                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="h-8 w-8">
+                                    </div>
+                                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                                        <h2 class="font-bold text-lg mb-2">Xin chào!</h2>
+                                        <p class="text-gray-600">Hệ thống gợi ý tài liệu đã sẵn sàng.</p>
+                                    </div>
+                                </div>
+                            </div>
+                      `;
+                 }
+
+                scrollToBottom();
+            }
+
+            // Copy button functionality (Delegation)
+             document.addEventListener('click', function(e) {
+                 const copyBtn = e.target.closest('.copy-btn');
+                 if (copyBtn) {
+                     // Find the content element - assuming it's the parent .bg-white or similar
+                     const messageBubble = copyBtn.closest('.bg-white');
+                     if (messageBubble) {
+                          let textToCopy = '';
+                          // Collect text from paragraphs and .combined-explanation
+                          messageBubble.querySelectorAll('p, .combined-explanation').forEach(el => {
+                              textToCopy += el.innerText + '\n'; // Use innerText to get visible text, add newline
+                          });
+                           // Collect text from list items if any
+                           messageBubble.querySelectorAll('.document-list li').forEach(el => {
+                               textToCopy += '- ' + el.innerText + '\n';
+                           });
+
+                         if (textToCopy.trim()) {
+                             navigator.clipboard.writeText(textToCopy.trim());
+
+                             // Show copied feedback
+                             const originalHTML = copyBtn.innerHTML;
+                             copyBtn.innerHTML = '<i class="fas fa-check"></i>'; // Check icon
+                             setTimeout(() => {
+                                 copyBtn.innerHTML = originalHTML; // Restore original icon
+                             }, 2000);
+                         }
+                     }
+                 }
+            });
+
+
+            // --- Initial Setup ---
+
+            // Load history when the page loads
+            updateHistorySidebar();
+
+            // Scroll chat to the bottom on load
+            scrollToBottom();
+
+             // Handle click on history links in sidebar (Delegation)
+             document.addEventListener('click', function(e) {
+                  const historyLink = e.target.closest('.sidebar-history-link');
+                  if (historyLink) {
+                       const query = historyLink.dataset.query;
+                       if (query) {
+                            if (messageInput) {
+                                messageInput.value = query;
+                                const inputEvent = new Event('input', { bubbles: true });
+                                messageInput.dispatchEvent(inputEvent);
+
+                                if (mobileSidebarOverlay.classList.contains('visible')) { // Check if mobile sidebar is open via overlay
+                                    mobileSidebar.classList.remove('open');
+                                    mobileSidebar.addEventListener('transitionend', function handler() {
+                                         mobileSidebarOverlay.classList.remove('visible');
+                                         mobileSidebar.removeEventListener('transitionend', handler);
+                                    });
+                                }
+
+                                messageInput.focus();
+                            }
+                       }
+                  }
+             });
+
+
+        }); // End DOMContentLoaded
+    </script>
+</body>
+</html>

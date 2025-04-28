@@ -1,0 +1,50 @@
+<!-- templates/login.html (Updated with Logo Image) -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - SGU Study Recommender</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <style>
+         .logo-img {
+             height: 3rem; /* Adjust size for login page */
+             width: 3rem;
+             margin-bottom: 1rem;
+         }
+     </style>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md w-96 flex flex-col items-center"> {# Use flex-col and items-center to center logo #}
+        <!-- Replace Icon with Image -->
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SGU Logo" class="logo-img">
+
+        <h1 class="text-2xl font-bold mb-6 text-center">Đăng nhập</h1>
+
+        {% if error %}
+            <p class="text-red-500 text-sm text-center mb-4">{{ error }}</p>
+        {% endif %}
+
+        <form action="{{ url_for('login') }}" method="post" class="w-full"> {# Ensure form takes full width #}
+            <div class="mb-4">
+                <label for="user_id" class="block text-gray-700 text-sm font-bold mb-2">Mã Sinh viên:</label>
+                <input type="text" id="user_id" name="user_id" required
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       value="{{ user_id if user_id is not none else '' }}">
+            </div>
+            <div class="flex items-center justify-between">
+                <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"> {# Make button full width #}
+                    Đăng nhập
+                </button>
+            </div>
+             {% if sample_user_ids %}
+                 <p class="text-xs text-gray-500 mt-4 text-center">
+                    Ví dụ: {% for uid in sample_user_ids %}{{ uid }}{% if not loop.last %}, {% endif %}{% endfor %}
+                 </p>
+             {% endif %}
+        </form>
+    </div>
+</body>
+</html>

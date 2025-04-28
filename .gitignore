@@ -2,7 +2,8 @@
 .env
 
 #Các file chạy
-.__pycache__/
+__pycache__/
 
 #Môi truờng ảo
 .venv/
+venv

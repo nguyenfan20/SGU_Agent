@@ -1,0 +1,382 @@
+/* static/style.css (Updated with Right Sidebar Styles) */
+
+/* General Layout */
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    overflow-x: hidden; /* Prevent horizontal scroll when sidebar is off-screen */
+}
+.flex-container {
+    display: flex;
+    height: 100vh; /* Fill viewport height */
+    overflow: hidden; /* Contain scrolling within flex items */
+}
+
+/* Left Sidebar */
+.left-sidebar {
+    width: 16rem; /* 64 TailWind */
+    flex-shrink: 0;
+    background-color: #1a202c; /* gray-900 */
+    color: white;
+    padding: 1rem; /* p-4 */
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease-in-out; /* Add transition */
+    transform: translateX(0); /* Default state */
+}
+/* Hide left sidebar on mobile */
+@media (max-width: 767px) {
+     .left-sidebar {
+          transform: translateX(-100%);
+          position: fixed; /* Fix position for overlay */
+          z-index: 40; /* Below mobile overlay */
+          height: 100%; /* Fill height when fixed */
+     }
+     .left-sidebar.open {
+          transform: translateX(0);
+     }
+}
+
+
+/* Main Content Area */
+.main-content-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Important for containing chat scroll */
+    position: relative; /* Needed for absolute positioning of toggle button */
+     transition: margin-right 0.3s ease-in-out; /* Transition for shifting when right sidebar is open */
+     margin-left: 16rem; /* Default shift right to make space for left sidebar on desktop */
+}
+ /* Remove default margin on mobile */
+ @media (max-width: 767px) {
+      .main-content-area {
+           margin-left: 0;
+      }
+ }
+
+ /* Shift main content when right sidebar is open (desktop only) */
+ @media (min-width: 768px) { /* Apply only >= md breakpoint */
+     .main-content-area.shifted {
+         margin-right: 16rem; /* Match right sidebar width */
+     }
+ }
+
+
+/* Right Sidebar (New) */
+.right-sidebar {
+     width: 16rem; /* Same width as left sidebar */
+     flex-shrink: 0;
+     background-color: #f7fafc; /* gray-100 */
+     color: #333;
+     padding: 1rem; /* p-4 */
+     border-left: 1px solid #e2e8f0; /* gray-200 */
+     display: flex;
+     flex-direction: column;
+     position: fixed; /* Fixed position */
+     top: 0;
+     right: 0;
+     bottom: 0;
+     transform: translateX(100%); /* Start off-screen */
+     transition: transform 0.3s ease-in-out; /* Add transition */
+     z-index: 50; /* Above main content, below mobile overlay */
+     box-shadow: -2px 0 5px rgba(0,0,0,0.1); /* Optional shadow */
+}
+.right-sidebar.open {
+     transform: translateX(0); /* Slide in */
+}
+ @media (max-width: 767px) {
+     .right-sidebar {
+         width: 75%;
+     }
+ }
+
+
+/* Chat Layout */
+.chat-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Fill main content height */
+}
+ .chat-layout .input-container {
+     flex-shrink: 0;
+     background-color: white; /* Ensure input background is white */
+     border-top: 1px solid #e2e8f0;
+ }
+ .chat-layout .messages-container {
+     flex-grow: 1;
+     overflow-y: auto; /* Enable vertical scrolling */
+     display: flex;
+     flex-direction: column; /* Standard column flow */
+     padding: 1rem;
+     padding-bottom: 100px; /* Padding for last message */
+ }
+ /* Add some space between message blocks */
+ .chat-layout #message-container > div {
+      margin-bottom: 1.5rem;
+ }
+ /* Add some space at the very top of the messages (after welcome) */
+ .chat-layout .welcome-message-container {
+      margin-bottom: 1.5rem;
+ }
+
+
+
+/* Message Styles */
+.max-w-3xl {
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+     width: 100%;
+}
+
+.recommendation-item {
+    background-color: #e9e9e9;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid #0056b3;
+    color: #333;
+}
+.recommendation-item .title {
+    font-weight: bold;
+    color: #0056b3;
+    margin-bottom: 0.3rem;
+}
+ .recommendation-item p {
+      color: #333;
+      font-size: 0.95em;
+      margin: 0;
+ }
+
+
+ .combined-explanation {
+     background-color: #e0f7fa;
+     border-left: 4px solid #007bff;
+     padding: 1rem;
+     margin-bottom: 1.5rem;
+     border-radius: 0.5rem;
+     font-style: italic;
+     color: #333;
+ }
+  .document-list-title {
+      font-weight: bold;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      color: #333;
+  }
+  .document-list {
+      list-style: disc;
+      padding-left: 20px;
+      margin-bottom: 1rem;
+  }
+  .document-list li {
+      margin-bottom: 0.3rem;
+      color: #555;
+  }
+  .document-list li strong {
+       color: #333;
+  }
+
+/* Sidebar History Links (Left Sidebar) */
+.sidebar-history-link {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    color: #ccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+.sidebar-history-link i {
+    flex-shrink: 0;
+    margin-right: 0.5rem;
+     color: #aaa;
+}
+ .sidebar-history-link span {
+     flex-grow: 1;
+     overflow: hidden;
+     text-overflow: ellipsis;
+     white-space: nowrap;
+ }
+.sidebar-history-link:hover {
+     background-color: #777;
+     color: white;
+}
+ .sidebar-history-link:hover i {
+     color: white;
+ }
+
+ .history-loading-message, .history-error-message, .no-history-message {
+     color: #9ca3af;
+     font-size: 0.875rem;
+     padding-left: 0.5rem;
+ }
+ .history-error-message {
+      color: #f87171;
+ }
+
+
+/* Right Sidebar Styles */
+.right-sidebar .search-input {
+     width: 100%;
+     padding: 0.5rem;
+     border: 1px solid #ccc;
+     border-radius: 0.25rem;
+     margin-bottom: 1rem;
+     box-sizing: border-box;
+}
+ .right-sidebar .document-list-sidebar {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+     overflow-y: auto;
+     flex-grow: 1;
+ }
+ .right-sidebar .document-list-sidebar li {
+     padding: 0.5rem 0;
+     border-bottom: 1px solid #eee;
+     font-size: 0.9em;
+     color: #555;
+     cursor: pointer;
+ }
+ .right-sidebar .document-list-sidebar li strong {
+     color: #333;
+ }
+ .right-sidebar .document-list-sidebar li:last-child {
+     border-bottom: none;
+ }
+ .right-sidebar .document-list-sidebar li:hover {
+     background-color: #e2e8f0;
+ }
+  .right-sidebar .document-list-sidebar .doc-id {
+      font-size: 0.8em;
+      color: #777;
+      margin-right: 5px;
+      display: inline-block;
+      min-width: 4em;
+  }
+
+
+/* Toggle Button for Right Sidebar */
+#right-sidebar-toggle {
+     position: fixed; /* Use fixed positioning for consistent location */
+     top: 1rem; /* Distance from top */
+     right: 1rem; /* Distance from right */
+     z-index: 20;
+     background-color: #007bff;
+     color: white;
+     padding: 0.5rem;
+     border: none; /* Remove default button border */
+     border-radius: 0.25rem;
+     cursor: pointer;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+     transition: transform 0.3s ease-in-out; /* Transition for moving button */
+}
+ /* Shift button left when right sidebar opens */
+ .main-content-area.shifted #right-sidebar-toggle {
+     /* This is a bit tricky with fixed position. We could shift the button
+        or let it stay fixed and rely on main content shifting.
+        Let's make it simple and just change the background or rotate icon.
+        Or, shift it relative to the *viewport* when the sidebar opens.
+        Let's shift it based on the sidebar width. */
+     /* Example: shift left by the width of the sidebar */
+      transform: translateX(-16rem); /* Shift left by sidebar width */
+ }
+ /* Ensure button is correctly positioned relative to main content area on desktop */
+ @media (min-width: 768px) {
+      #right-sidebar-toggle {
+           top: 1rem; /* Restore top position relative to main-content-area container */
+           right: 1rem; /* Restore right position relative to main-content-area container */
+            position: absolute; /* Position absolute relative to main-content-area */
+      }
+      .main-content-area.shifted #right-sidebar-toggle {
+            right: 17rem; /* Shift right relative to main-content-area */
+            transform: translateX(0); /* No transform needed when using 'right' */
+      }
+ }
+  /* Mobile: keep fixed position, don't shift */
+  @media (max-width: 767px) {
+       #right-sidebar-toggle {
+            position: fixed; /* Keep fixed on mobile */
+            top: calc(4rem + 1rem); /* Position below mobile header */
+            right: 1rem;
+            transform: translateX(0); /* No transform on mobile */
+       }
+       .main-content-area.shifted #right-sidebar-toggle {
+            right: 1rem; /* Do not shift on mobile */
+            transform: translateX(0);
+       }
+  }
+
+
+/* Mobile Overlay for Left Sidebar */
+#mobile-sidebar-overlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background-color: rgba(0, 0, 0, 0.5);
+     z-index: 30;
+     display: none;
+}
+ #mobile-sidebar-overlay.visible {
+     display: block;
+ }
+ /* The actual sidebar sliding logic is handled by JS adding/removing .open */
+
+/* Custom style for logo images */
+.logo-img {
+    height: 2.5rem; /* Default size */
+    width: 2.5rem;
+    margin-right: 0.5rem; /* Default margin */
+    border-radius: 50%; /* Make it round */
+    object-fit: cover; /* Ensure image covers the area without distortion */
+}
+
+/* Adjust logo size in specific contexts */
+.left-sidebar .logo-img {
+    height: 2.5rem; /* h-10 */
+    width: 2.5rem; /* w-10 */
+    /* margin-right handled by parent flex */
+}
+
+/* Adjust message bubble icon holder size */
+.chat-layout .flex-shrink-0.h-10.w-10 {
+     /* Tailwind classes h-10 w-10 (2.5rem) define the container size */
+     display: flex; /* Ensure logo is centered inside */
+     align-items: center;
+     justify-content: center;
+}
+.chat-layout .welcome-message-container .flex-shrink-0 .logo-img,
+.chat-layout #message-container .flex-shrink-0 .logo-img {
+     height: 2rem; /* h-8 equivalent */
+     width: 2rem; /* w-8 equivalent */
+     margin-right: 0; /* Remove margin here if flex container handles spacing */
+}
+/* Adjust spacing next to the logo inside bubbles */
+.chat-layout .flex-items-start.space-x-4 > :first-child {
+     /* This is the flex-shrink-0 div containing the logo */
+     margin-right: 1rem !important; /* Add some space */
+}
+
+/* Style for the logo on the login page */
+.login-container .logo-img { /* Add a class to the login div if needed */
+     height: 3rem;
+     width: 3rem;
+     margin-bottom: 1rem;
+}
