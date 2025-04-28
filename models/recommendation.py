@@ -326,7 +326,7 @@ class RecommendationSystem:
              for doc in docs_to_display:
                   recommended_documents_with_explanation.append({
                       'doc_id': doc['doc_id'],
-                      'title': doc['details'].get('title', f'Tài liệu ID: {doc['doc_id']}'),
+                      'title': doc['details'].get('title', f"Tài liệu ID: {doc['doc_id']}"),
                       'explanation': rag_response_text, # The main explanation is the combined GPT response
                       'source': doc.get('source_candidate', 'Retrieval') # Original source of this candidate
                   })
