@@ -8,3 +8,4 @@ faiss-cpu>=1.7.4
 # sentencepiece # No longer needed
 openai>=1.0.0
 python-dotenv>=1.0.0 # For loading .env file
+gunicorn>=20.1.0
