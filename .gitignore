@@ -7,3 +7,6 @@ __pycache__/
 #Môi truờng ảo
 .venv/
 venv/
+
+#Tạo key
+create_key.py
