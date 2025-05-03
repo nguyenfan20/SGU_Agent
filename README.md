@@ -7,7 +7,7 @@
 
 ## 🎉 Giới thiệu
 
-📅 Đây là dự án đồ án chuyên ngành xây dựng một hệ thống gợi ý tài liệu học tập cá nhân hóa, chính xác và minh bạch cho sinh viên Đại học Sài Gòn. Hệ thống sử dụng kết hợp các phương pháp hiện đại bao gồm Collaborative Filtering (CF), Content-Based Filtering (CBF), và Retrieval-Augmented Generation (RAG) trên nền tảng Flask.
+📅 Đây là dự án đồ án chuyên ngành xây dựng một hệ thống gợi ý tài liệu học tập cá nhân hóa, chính xác và minh bạch cho sinh viên Đại học Sài Gòn. Hệ thống sử dụng kết hợp các phương pháp Collaborative Filtering (CF), Content-Based Filtering (CBF), tìm kiếm ngữ nghĩa với **Sentence-BERT**, và sinh giải thích gợi ý bằng **mô hình ngôn ngữ T5 tiếng Việt**. Hệ thống được phát triển trên nền tảng Flask.
 
 **🚀 Mục tiêu chính:**
 - 🎯 Cung cấp gợi ý tài liệu học tập phù hợp dựa trên hồ sơ sinh viên, lịch sử tương tác và truy vấn tìm kiếm.
@@ -19,13 +19,25 @@
 
 Hệ thống được xây dựng theo kiến trúc microservice đơn giản, với các module chính:
 
-1. 📝 **Nhập liệu & Tiền xử lý:** Đọc dữ liệu từ các file CSV (tài liệu, hồ sơ sinh viên, tương tác), chuẩn hóa và làm giàu metadata.
-2. 🔍 **Retrieval (Truy xuất):** Sử dụng OpenAI `text-embedding-ada-002` để tạo vector embedding cho tài liệu.
-3. 🧩 **Candidate Generation & Combination:** Tạo ứng viên tài liệu từ nhiều nguồn (CBF, CF) và loại bỏ trùng lặp.
-4. 📈 **Reranking & RAG Context Selection:** Áp dụng heuristic để xếp hạng lại và chọn tài liệu tham chiếu.
-5. 🧠 **LLM (Large Language Model):** GPT-3.5 nhận truy vấn và thông tin tài liệu ứng viên để sinh giải thích.
-6. 📚 **Quản lý Lịch sử:** Lưu lịch sử truy vấn của sinh viên vào database SQLite.
-7. 🌐 **Giao diện Web (Flask):** Xử lý đăng nhập, chat, hiển thị tài liệu gợi ý và lịch sử.
+1. 📝 **Nhập liệu & Tiền xử lý:** Đọc dữ liệu từ các file CSV (`documents.csv`, `student_profiles.csv`, `interactions.csv`), chuẩn hóa và làm giàu metadata tài liệu.
+2. 🔍 **Retrieval (Truy xuất):**
+    *   Sử dụng mô hình **Sentence-BERT** (ví dụ: `sentence-transformers/all-MiniLM-L6-v2`) để tạo vector embedding cho tài liệu (dựa trên tiêu đề, tóm tắt, từ khóa, môn học, ngành liên quan) và truy vấn.
+    *   Xây dựng chỉ mục **FAISS (Index HNSWFlat)** để lưu trữ và tìm kiếm nhanh các vector tài liệu gần nhất (semantic search).
+3. 🧩 **Candidate Generation & Combination:**
+    *   Tạo các ứng viên tài liệu từ các nguồn:
+        *   CBF (Query): Tài liệu có vector gần với vector truy vấn (sử dụng FAISS search).
+        *   CBF (Profile): Tài liệu có vector gần với vector được tạo từ thông tin hồ sơ sinh viên (ngành, năm học) (sử dụng FAISS search với query từ profile).
+        *   CF (Collaborative Filtering): Tài liệu được quan tâm bởi các sinh viên có lịch sử tương tác tương tự (sử dụng Jaccard Similarity trên tập tài liệu đã tương tác).
+    *   Kết hợp các ứng viên từ các nguồn khác nhau, loại bỏ trùng lặp và xếp hạng dựa trên điểm số heuristic ban đầu.
+4. 🧠 **Explanation Generation (Sinh Giải thích):**
+    *   Sử dụng **mô hình ngôn ngữ T5 tiếng Việt (VietAI/vit5-base)** (hoặc template động/tĩnh nếu T5 gặp lỗi phông).
+    *   Nhận thông tin của từng tài liệu gợi ý hàng đầu, truy vấn ban đầu, và thông tin người dùng làm ngữ cảnh.
+    *   Sinh ra một đoạn giải thích cụ thể lý do tại sao tài liệu đó phù hợp với truy vấn và/hoặc hồ sơ sinh viên.
+5. 📚 **Quản lý Lịch sử:** Lưu trữ lịch sử truy vấn của từng sinh viên vào database **SQLite**.
+6. 🌐 **Giao diện Web (Flask):**
+    *   Ứng dụng Flask phục vụ các route (đăng nhập/xuất, gợi ý, API lịch sử, API danh sách tài liệu).
+    *   Giao diện người dùng dạng chat (HTML/CSS/JS) cho phép nhập truy vấn, hiển thị tin nhắn chat (truy vấn của sinh viên, phản hồi gợi ý từ AI), hiển thị lịch sử truy vấn trong sidebar trái, và danh sách tài liệu có thể tìm kiếm trong sidebar phải.
+    *   Sử dụng Fetch API (JavaScript) để giao tiếp không đồng bộ với backend.
 
 ## 🗂️ Cấu trúc Thư mục
 ```
@@ -59,7 +71,6 @@ SGU_Agent/
 
 - Python 3.7+
 - Kết nối Internet
-- Tài khoản OpenAI API và API Key
 
 ## 🛠️ Cài đặt
 
@@ -72,11 +83,14 @@ SGU_Agent/
     pip install -r requirements.txt
     ```
 3. **Chuẩn bị Dữ liệu:** Đặt các file CSV vào thư mục `data/`.
-4. **Cấu hình API Key:** Tạo file `.env` và thêm:
-    ```dotenv
-    OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
-    SECRET_KEY=A_RANDOM_LONG_AND_COMPLEX_STRING_FOR_SESSION_SECURITY
-    ```
+4.  **Cấu hình Secret Key:**
+    *   Tạo file `.env` ở thư mục gốc của dự án (nếu chưa có).
+    *   Thêm dòng sau vào file `.env`:
+        ```dotenv
+        SECRET_KEY=A_RANDOM_LONG_AND_COMPLEX_STRING_FOR_SESSION_SECURITY
+        ```
+    *   Thay thế placeholder bằng một chuỗi ngẫu nhiên, dài, phức tạp của riêng bạn.
+    *   (Quan trọng) **KHÔNG** chia sẻ file `.env`. Nếu dùng Git, thêm `.env` vào `.gitignore`.
 
 ## 🚀 Chạy Ứng dụng
 
