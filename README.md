@@ -44,10 +44,10 @@ Hệ thống được xây dựng theo kiến trúc microservice đơn giản, v
 SGU_Agent/
 ├── app.py
 ├── history_manager.py
-├── openai_utils.py
 ├── models/
 │   ├── __init__.py
 │   ├── data_processing.py
+│   ├── explanation.py
 │   ├── recommendation.py
 │   └── retrieval.py
 ├── data/
