@@ -1,122 +1,201 @@
+# 📚 SGU Agent: Personalized Learning Resource Recommendation System
 
-<p align="center">
-  <img src="static/img/logo.png" alt="Logo" width="120"/>
-</p>
+[![Python](https://img.shields.io/badge/Python-3.7+-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-2.x-black?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-Transformers-yellow?logo=huggingface)](https://huggingface.co/)
+[![FAISS](https://img.shields.io/badge/Vector_DB-FAISS-orange)](https://faiss.ai/)
+[![SQLite](https://img.shields.io/badge/Database-SQLite-blue?logo=sqlite)](https://www.sqlite.org/)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE.txt)
 
-# SGU_Agent: Hệ thống Gợi ý Tài liệu Học tập Thông minh SGU
+> A personalized, explainable learning resource recommendation system for Saigon University students, combining Collaborative Filtering, Content-Based Filtering, semantic search via Sentence-BERT, and Vietnamese T5-based natural language explanations.
 
-## 🎉 Giới thiệu
+---
 
-📅 Đây là dự án đồ án chuyên ngành xây dựng một hệ thống gợi ý tài liệu học tập cá nhân hóa, chính xác và minh bạch cho sinh viên Đại học Sài Gòn. Hệ thống sử dụng kết hợp các phương pháp Collaborative Filtering (CF), Content-Based Filtering (CBF), tìm kiếm ngữ nghĩa với **Sentence-BERT**, và sinh giải thích gợi ý bằng **mô hình ngôn ngữ T5 tiếng Việt**. Hệ thống được phát triển trên nền tảng Flask.
+## 📌 Overview
 
-**🚀 Mục tiêu chính:**
-- 🎯 Cung cấp gợi ý tài liệu học tập phù hợp dựa trên hồ sơ sinh viên, lịch sử tương tác và truy vấn tìm kiếm.
-- ❄️ Khắc phục vấn đề Cold-start cho người dùng mới.
-- 🖥️ Tích hợp giao diện web đơn giản cho phép sinh viên tương tác và nhận gợi ý kèm giải thích rõ ràng.
-- 🚀 Sử dụng công nghệ tiên tiến (Embedding, FAISS, LLM) để nâng cao chất lượng gợi ý và trải nghiệm người dùng.
+SGU Agent addresses the challenge of information overload in academic environments by delivering **intelligent, context-aware document recommendations** tailored to each student's profile and search intent.
 
-## 🏛️ Kiến trúc Hệ thống
+Rather than returning generic search results, the system **understands the student's major, academic year, and interaction history**, then generates a natural language explanation for *why* each recommended resource is relevant — making the system both accurate and transparent.
 
-Hệ thống được xây dựng theo kiến trúc microservice đơn giản, với các module chính:
+---
 
-1. 📝 **Nhập liệu & Tiền xử lý:** Đọc dữ liệu từ các file CSV (`documents.csv`, `student_profiles.csv`, `interactions.csv`), chuẩn hóa và làm giàu metadata tài liệu.
-2. 🔍 **Retrieval (Truy xuất):**
-    *   Sử dụng mô hình **Sentence-BERT** (ví dụ: `sentence-transformers/all-MiniLM-L6-v2`) để tạo vector embedding cho tài liệu (dựa trên tiêu đề, tóm tắt, từ khóa, môn học, ngành liên quan) và truy vấn.
-    *   Xây dựng chỉ mục **FAISS (Index HNSWFlat)** để lưu trữ và tìm kiếm nhanh các vector tài liệu gần nhất (semantic search).
-3. 🧩 **Candidate Generation & Combination:**
-    *   Tạo các ứng viên tài liệu từ các nguồn:
-        *   CBF (Query): Tài liệu có vector gần với vector truy vấn (sử dụng FAISS search).
-        *   CBF (Profile): Tài liệu có vector gần với vector được tạo từ thông tin hồ sơ sinh viên (ngành, năm học) (sử dụng FAISS search với query từ profile).
-        *   CF (Collaborative Filtering): Tài liệu được quan tâm bởi các sinh viên có lịch sử tương tác tương tự (sử dụng Jaccard Similarity trên tập tài liệu đã tương tác).
-    *   Kết hợp các ứng viên từ các nguồn khác nhau, loại bỏ trùng lặp và xếp hạng dựa trên điểm số heuristic ban đầu.
-4. 🧠 **Explanation Generation (Sinh Giải thích):**
-    *   Sử dụng **mô hình ngôn ngữ T5 tiếng Việt (VietAI/vit5-base)** (hoặc template động/tĩnh nếu T5 gặp lỗi phông).
-    *   Nhận thông tin của từng tài liệu gợi ý hàng đầu, truy vấn ban đầu, và thông tin người dùng làm ngữ cảnh.
-    *   Sinh ra một đoạn giải thích cụ thể lý do tại sao tài liệu đó phù hợp với truy vấn và/hoặc hồ sơ sinh viên.
-5. 📚 **Quản lý Lịch sử:** Lưu trữ lịch sử truy vấn của từng sinh viên vào database **SQLite**.
-6. 🌐 **Giao diện Web (Flask):**
-    *   Ứng dụng Flask phục vụ các route (đăng nhập/xuất, gợi ý, API lịch sử, API danh sách tài liệu).
-    *   Giao diện người dùng dạng chat (HTML/CSS/JS) cho phép nhập truy vấn, hiển thị tin nhắn chat (truy vấn của sinh viên, phản hồi gợi ý từ AI), hiển thị lịch sử truy vấn trong sidebar trái, và danh sách tài liệu có thể tìm kiếm trong sidebar phải.
-    *   Sử dụng Fetch API (JavaScript) để giao tiếp không đồng bộ với backend.
+## ✨ Key Features
 
-## 🗂️ Cấu trúc Thư mục
+- **Hybrid recommendation engine** combining Collaborative Filtering (CF) and Content-Based Filtering (CBF)
+- **Semantic search** via Sentence-BERT embeddings and FAISS (HNSWFlat index) for fast nearest-neighbor retrieval
+- **Cold-start handling** for new users using profile-based CBF (major, academic year)
+- **Explainable AI** — natural language recommendation explanations generated by a Vietnamese T5 model (`VietAI/vit5-base`)
+- **Conversational chat UI** built with Flask, HTML/CSS/JS, and async Fetch API
+- **Query history management** with SQLite persistence per student session
+
+---
+
+## 🏗️ System Architecture
+
+```
+Student Query + User Profile
+         │
+         ▼
+┌────────────────────────────────────────────────┐
+│           Sentence-BERT Encoder                │
+│    (all-MiniLM-L6-v2 / multilingual)           │
+└────────────────────┬───────────────────────────┘
+                     │  Query Vector
+         ┌───────────┼───────────┐
+         ▼           ▼           ▼
+   ┌──────────┐ ┌──────────┐ ┌──────────────┐
+   │ CBF      │ │ CBF      │ │ CF           │
+   │ (Query)  │ │ (Profile)│ │ (Jaccard     │
+   │ FAISS    │ │ FAISS    │ │  Similarity) │
+   └────┬─────┘ └────┬─────┘ └──────┬───────┘
+        │            │               │
+        └────────────┴───────────────┘
+                     │  Candidate Pool
+                     ▼
+        ┌────────────────────────┐
+        │  Score Fusion &        │
+        │  Re-ranking            │
+        └────────────┬───────────┘
+                     │  Top-K Results
+                     ▼
+        ┌────────────────────────┐
+        │  VietAI/vit5-base      │
+        │  Explanation Generator │
+        └────────────┬───────────┘
+                     │
+               Final Response
+           (Recommendations + Explanations)
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|---|---|
+| **Web Framework** | Flask |
+| **Embedding Model** | `sentence-transformers/all-MiniLM-L6-v2` |
+| **Vector Index** | FAISS (HNSWFlat) |
+| **Language Model** | `VietAI/vit5-base` (Vietnamese T5) |
+| **CF Algorithm** | Jaccard Similarity on interaction history |
+| **Database** | SQLite (query history) |
+| **Frontend** | HTML / CSS / JavaScript (Fetch API) |
+| **Language** | Python 3.7+ |
+
+---
+
+## 📂 Project Structure
+
 ```
 SGU_Agent/
-├── app.py
-├── history_manager.py
+├── app.py                        # Flask application entry point
+├── history_manager.py            # SQLite query history management
 ├── models/
 │   ├── __init__.py
-│   ├── data_processing.py
-│   ├── explanation.py
-│   ├── recommendation.py
-│   └── retrieval.py
+│   ├── data_processing.py        # Data loading & preprocessing
+│   ├── retrieval.py              # FAISS index & semantic search
+│   ├── recommendation.py         # CF + CBF fusion & scoring
+│   └── explanation.py            # T5-based explanation generation
 ├── data/
-│   ├── documents.csv            
-│   ├── student_profiles.csv
-│   ├── interactions.csv
-│   └── query_history.db        
+│   ├── documents.csv             # Document metadata
+│   ├── student_profiles.csv      # Student major, year, preferences
+│   ├── interactions.csv          # Historical student-document interactions
+│   └── query_history.db          # SQLite database (auto-generated)
 ├── templates/
-│   ├── index.html              
-│   └── login.html              
+│   ├── index.html                # Main chat interface
+│   └── login.html                # Student login page
 ├── static/
-│   ├── style.css               
+│   ├── style.css
 │   └── img/
-│       └── logo.png            
-├── .env                        
-└── requirements.txt            
-└── README.models
+│       └── logo.png
+├── .env                          # Secret key (not committed to Git)
+├── requirements.txt
+└── README.md
 ```
 
-## ⚙️ Yêu cầu Hệ thống
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
 
 - Python 3.7+
-- Kết nối Internet
+- Internet connection (for downloading pretrained models on first run)
 
-## 🛠️ Cài đặt
+### Installation
 
-1. **Clone Repository** hoặc tải xuống mã nguồn.
-2. **Cài đặt Thư viện Python:**
-    ```bash
-    python -m venv venv
-    venv\Scripts\activate   # Windows
-    source venv/bin/activate  # macOS/Linux
-    pip install -r requirements.txt
-    ```
-3. **Chuẩn bị Dữ liệu:** Đặt các file CSV vào thư mục `data/`.
-4.  **Cấu hình Secret Key:**
-    *   Tạo file `.env` ở thư mục gốc của dự án (nếu chưa có).
-    *   Thêm dòng sau vào file `.env`:
-        ```dotenv
-        SECRET_KEY=A_RANDOM_LONG_AND_COMPLEX_STRING_FOR_SESSION_SECURITY
-        ```
-    *   Thay thế placeholder bằng một chuỗi ngẫu nhiên, dài, phức tạp của riêng bạn.
-    *   (Quan trọng) **KHÔNG** chia sẻ file `.env`. Nếu dùng Git, thêm `.env` vào `.gitignore`.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/SGU_Agent.git
+   cd SGU_Agent
+   ```
 
-## 🚀 Chạy Ứng dụng
+2. **Create and activate a virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate        # macOS/Linux
+   venv\Scripts\activate           # Windows
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure the secret key:**
+
+   Create a `.env` file in the project root:
+   ```dotenv
+   SECRET_KEY=your_random_long_secret_key_here
+   ```
+   > ⚠️ Never commit `.env` to version control. Add it to `.gitignore`.
+
+5. **Place your data files** in the `data/` directory:
+   - `documents.csv`
+   - `student_profiles.csv`
+   - `interactions.csv`
+
+### Running the App
 
 ```bash
 python app.py
 ```
 
-Mở trình duyệt và truy cập `http://127.0.0.1:5000/`.
-
-## 🎯 Sử dụng Hệ thống
-
-- Đăng nhập bằng User ID.
-- Nhập truy vấn và nhận tài liệu gợi ý cùng giải thích.
-- Xem lịch sử truy vấn và tìm kiếm tài liệu.
-
-## 🧪 Thử nghiệm
-
-- Thử nhiều truy vấn khác nhau.
-- Dùng User ID khác nhau để kiểm thử.
-
-## 🤝 Đóng góp
-
-Nếu bạn có ý tưởng hoặc muốn đóng góp vào dự án này, vui lòng liên hệ [nguyenphan201203@gmail.com].
-
-## 📜 Giấy phép
-
-[MIT License](LICENSE.txt)
+Open your browser at `http://127.0.0.1:5000/`
 
 ---
+
+## 🎯 How It Works
+
+1. **Login** with a Student ID.
+2. **Enter a natural language query** (e.g., *"Tài liệu về mạng máy tính cho sinh viên năm 3"*).
+3. The system retrieves semantically relevant documents and cross-references your interaction history.
+4. Receive **top recommendations** with **AI-generated explanations** in Vietnamese.
+5. Browse your **query history** in the sidebar and search the full document catalog.
+
+---
+
+## 🔮 Future Improvements
+
+- [ ] Integrate a more powerful Vietnamese LLM (e.g., Vistral-7B) for richer explanations
+- [ ] Add learning feedback loop — let students rate recommendations to improve CF over time
+- [ ] Expand dataset with real SGU course materials and syllabi
+- [ ] Replace heuristic re-ranking with a learned ranking model (LambdaMART, ListNet)
+- [ ] Deploy as a containerized service (Docker + Gunicorn) for production use
+
+---
+
+## 👤 Author
+
+**Phan Tài Nguyên**
+- 📧 [nguyenphan201203@gmail.com](mailto:nguyenphan201203@gmail.com)
+- 🎓 Saigon University — Information Technology
+
+---
+
+## 📬 References
+
+- [Sentence-Transformers](https://www.sbert.net/)
+- [FAISS by Meta AI](https://faiss.ai/)
+- [VietAI/vit5-base on HuggingFace](https://huggingface.co/VietAI/vit5-base)
+- [Flask Documentation](https://flask.palletsprojects.com/)
